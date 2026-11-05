@@ -1,0 +1,9 @@
+{
+  "name": "손금 운세",
+  "short_name": "손금 운세",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#16121f",
+  "theme_color": "#16121f",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

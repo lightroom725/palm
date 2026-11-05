@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#16121f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="손금 운세">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon.svg">
+<title>손금 운세</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#16121f; --panel:#211b2e; --panel2:#2a2339; --line:#3b3250;
+    --gold:#e3b866; --gold2:#f4d79a; --text:#efe9f7; --mute:#a99cbf;
+    --life:#ff6b8a; --head:#5ec8ff; --heart:#ffd166; --fate:#b49cff;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:radial-gradient(900px 500px at 50% -10%,#2d2244 0%,var(--bg) 60%);color:var(--text);
+    font-family:"Noto Sans KR",system-ui,sans-serif;min-height:100vh}
+  .wrap{max-width:520px;margin:0 auto;padding:24px 16px 48px}
+  header{text-align:center;margin-bottom:20px}
+  h1{font-family:"Gowun Batang",serif;font-size:28px;margin:0 0 6px;color:var(--gold2);letter-spacing:2px}
+  header p{color:var(--mute);margin:0;font-size:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:14px}
+  h2{font-family:"Gowun Batang",serif;font-size:19px;margin:0 0 4px;color:var(--gold)}
+  .sub{color:var(--mute);font-size:13.5px;margin:0 0 14px;line-height:1.55}
+  .bigbtns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .big{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:22px 10px;border-radius:16px;
+    border:1.5px dashed #5b4d78;background:var(--panel2);color:var(--text);font:inherit;font-weight:700;cursor:pointer;text-align:center}
+  .big span{font-size:30px}
+  .big small{font-weight:400;color:var(--mute);font-size:12px}
+  .big input{display:none}
+  .tips{margin:14px 0 0;padding:0 0 0 18px;color:var(--mute);font-size:13px;line-height:1.7}
+  .row{display:flex;gap:8px}
+  .pill{flex:1;padding:11px 8px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--text);cursor:pointer;font:inherit;font-size:14px}
+  .pill.sel{border-color:var(--gold);background:#3a2f22;color:var(--gold2)}
+  .stage{position:relative;border-radius:16px;overflow:hidden;background:#0d0a13;border:1px solid var(--line)}
+  canvas{display:block;width:100%;height:auto}
+  canvas.drawing{touch-action:none;cursor:crosshair}
+  .scan{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;
+    background:rgba(16,12,24,.55);color:var(--gold2);font-size:15px}
+  .scan.on{display:flex}
+  .scan::before{content:"";position:absolute;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);
+    box-shadow:0 0 18px var(--gold);animation:sweep 1.8s ease-in-out infinite}
+  @keyframes sweep{0%{top:5%}50%{top:92%}100%{top:5%}}
+  .legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .chip{display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);
+    font-size:13px;color:var(--text);cursor:pointer;font-family:inherit}
+  .chip i{width:10px;height:10px;border-radius:50%}
+  .chip.dim{opacity:.4}
+  .btn{width:100%;padding:14px;border-radius:14px;border:none;font:inherit;font-weight:700;font-size:15px;cursor:pointer;margin-top:12px}
+  .btn.primary{background:var(--gold);color:#241a0c}
+  .btn.primary:disabled{opacity:.35}
+  .btn.ghost{background:transparent;color:var(--mute);border:1px solid var(--line)}
+  .btns2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .btns2 .btn{margin-top:8px}
+  .hidden{display:none!important}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+  .opt{background:var(--panel2);border:1.5px solid var(--line);border-radius:12px;padding:10px;cursor:pointer;text-align:left;color:var(--text);font:inherit}
+  .opt.sel{border-color:var(--gold);box-shadow:0 0 0 3px rgba(227,184,102,.18)}
+  .opt b{display:block;font-size:14px}
+  .opt small{display:block;color:var(--mute);font-size:12px;margin-top:2px}
+  .stepbar{display:flex;gap:5px;margin-bottom:12px}
+  .stepbar span{flex:1;height:4px;border-radius:2px;background:var(--line)}
+  .result-head{text-align:center;padding:4px 0}
+  .result-head .type{font-family:"Gowun Batang",serif;font-size:26px;color:var(--gold2);margin:4px 0 8px}
+  .result-head p{color:var(--mute);margin:0;line-height:1.65;font-size:14px}
+  .bars{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}
+  .bar{background:var(--panel2);border-radius:12px;padding:12px}
+  .bar .top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px}
+  .bar .stars{color:var(--gold);letter-spacing:1px}
+  .bar .track{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+  .bar .fill{height:100%;background:linear-gradient(90deg,#c87a8f,var(--gold));border-radius:3px}
+  .reading h3{display:flex;align-items:center;gap:8px;font-size:15px;margin:18px 0 6px}
+  .reading h3 i{width:10px;height:10px;border-radius:50%}
+  .reading p{margin:0;line-height:1.75;font-size:14.5px}
+  .reading .ai{color:var(--mute);font-size:13.5px;margin-top:6px}
+  .lucky{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
+  .lucky div{background:var(--panel2);border-radius:12px;padding:10px;font-size:13.5px;text-align:center}
+  .lucky span{display:block;color:var(--mute);font-size:11.5px;margin-bottom:4px}
+  .swatch{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px}
+  .msg{background:#3a2430;border:1px solid #6b3a4c;color:#f2c7d2;border-radius:12px;padding:12px;font-size:13.5px;line-height:1.6;margin-bottom:12px}
+  .note{color:var(--mute);font-size:12px;text-align:center;margin-top:14px;line-height:1.6}
+  #copied{display:block;text-align:center;color:var(--gold);font-size:13px;margin-top:6px;min-height:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>✋ 손금 운세</h1>
+    <p>손바닥을 찍으면 손금을 찾아 그려 주고 운세를 알려 드려요</p>
+  </header>
+
+  <!-- 1. 사진 -->
+  <section id="s-capture" class="card">
+    <h2>손바닥 사진</h2>
+    <p class="sub">촬영하거나 갤러리에서 사진을 불러오세요.</p>
+    <div class="bigbtns">
+      <label class="big"><span>📷</span>촬영하기<small>카메라로 바로 찍기</small>
+        <input type="file" accept="image/*" capture="environment" id="in-camera"></label>
+      <label class="big"><span>🖼️</span>사진 불러오기<small>갤러리에서 선택</small>
+        <input type="file" accept="image/*" id="in-gallery"></label>
+    </div>
+    <ul class="tips">
+      <li>손바닥을 활짝 펴고 화면에 꽉 차게 찍어 주세요</li>
+      <li>밝은 곳에서, 손금이 그림자 없이 보이게 찍으면 정확해요</li>
+      <li>배경은 단색일수록 좋아요</li>
+    </ul>
+  </section>
+
+  <!-- 사진 + 손금 표시 -->
+  <section id="s-photo" class="card hidden">
+    <div id="msg"></div>
+    <div id="stepbar" class="stepbar hidden"></div>
+    <h2 id="photo-title">어느 손인가요?</h2>
+    <p class="sub" id="photo-sub">왼손은 타고난 운, 오른손은 노력으로 만들어 가는 운을 봅니다.</p>
+    <div class="stage">
+      <canvas id="cv"></canvas>
+      <div class="scan" id="scan"><div>손금을 찾고 있어요…</div></div>
+    </div>
+    <div id="legend" class="legend hidden"></div>
+
+    <!-- 손 선택 + 분석 -->
+    <div id="pre">
+      <div class="row" style="margin-top:12px">
+        <button class="pill" data-h="left">왼손 · 타고난 운</button>
+        <button class="pill" data-h="right">오른손 · 만들어 갈 운</button>
+      </div>
+      <button class="btn primary" id="btn-analyze" disabled>손금 분석하기 ✨</button>
+      <button class="btn ghost" id="btn-retake">다른 사진 고르기</button>
+    </div>
+
+    <!-- 직접 그리기 모드 -->
+    <div id="manual" class="hidden">
+      <div class="opts" id="opts"></div>
+      <div class="btns2">
+        <button class="btn ghost" id="m-clear">선 지우기</button>
+        <button class="btn primary" id="m-next" disabled>다음</button>
+      </div>
+      <button class="btn ghost" id="m-prev" style="margin-top:8px">이전</button>
+    </div>
+  </section>
+
+  <!-- 결과 -->
+  <section id="s-result" class="card hidden"></section>
+</div>
+
+<script>
+/* ---------- 손금 데이터 ---------- */
+const LINES = [
+  { key:"life", name:"생명선", color:"#ff6b8a",
+    where:"엄지와 검지 사이에서 시작해 엄지 뿌리를 감싸며 손목 쪽으로 내려가는 선",
+    opts:[
+      {k:"long", t:"길고 깊음", s:"손목 가까이까지 또렷하게", sc:{health:5,money:3,love:3,career:3},
+       r:"생명력이 강하고 체력이 좋은 손금입니다. 쉽게 지치지 않고, 오래 꾸준히 밀고 나가는 힘이 있어요."},
+      {k:"short", t:"짧음", s:"중간쯤에서 끝남", sc:{health:3,money:3,love:3,career:3},
+       r:"생명선이 짧다고 수명이 짧은 건 아니에요. 에너지를 짧고 굵게 쓰는 편이라 휴식 리듬을 챙기면 좋습니다."},
+      {k:"broken", t:"중간에 끊김", s:"한 번 끊겼다 이어짐", sc:{health:3,money:3,love:3,career:4},
+       r:"삶의 전환점이 한 번 크게 찾아오는 손금입니다. 이사·이직 같은 변화가 오히려 새 출발의 계기가 됩니다."},
+      {k:"wide", t:"넓게 휘어짐", s:"손바닥 가운데까지 크게", sc:{health:5,money:4,love:4,career:3},
+       r:"활동 반경이 넓고 열정이 넘치는 타입입니다. 사람을 만나고 움직일수록 기운이 살아나요."}
+  ]},
+  { key:"head", name:"두뇌선", color:"#5ec8ff",
+    where:"생명선 시작점 근처에서 손바닥을 가로지르는 선",
+    opts:[
+      {k:"straight", t:"길고 곧음", s:"새끼손가락 쪽까지 일직선", sc:{health:3,money:4,love:3,career:5},
+       r:"논리적이고 분석력이 뛰어납니다. 계획을 세우고 체계적으로 실행하는 일에서 두각을 나타내요."},
+      {k:"curved", t:"아래로 휘어짐", s:"손목 쪽으로 곡선", sc:{health:3,money:3,love:4,career:4},
+       r:"상상력과 감수성이 풍부한 손금입니다. 기획·디자인·글쓰기처럼 창의력을 쓰는 일과 잘 맞아요."},
+      {k:"short", t:"짧음", s:"손바닥 중간에서 끝남", sc:{health:3,money:4,love:3,career:3},
+       r:"판단이 빠르고 실용적입니다. 오래 고민하기보다 바로 행동해서 결과를 만드는 스타일이에요."},
+      {k:"separated", t:"생명선과 떨어져 시작", s:"시작점에 틈이 있음", sc:{health:3,money:4,love:3,career:4},
+       r:"독립심과 결단력이 강합니다. 남의 눈치보다 자기 판단을 믿고 과감하게 도전하는 편이에요."}
+  ]},
+  { key:"heart", name:"감정선", color:"#ffd166",
+    where:"새끼손가락 아래에서 시작해 검지·중지 쪽으로 뻗는, 가장 위쪽의 가로선",
+    opts:[
+      {k:"index", t:"검지까지 길게", s:"검지 아래까지 곡선", sc:{health:3,money:3,love:5,career:3},
+       r:"마음이 따뜻하고 헌신적인 사랑을 합니다. 한번 마음을 주면 깊고 오래가는 관계를 만들어요."},
+      {k:"middle", t:"중지 아래에서 끝남", s:"중간에서 위로 올라감", sc:{health:3,money:4,love:3,career:4},
+       r:"감정 표현은 담백하지만 현실 감각이 좋습니다. 연애에서도 주도적이고 자기 페이스를 지켜요."},
+      {k:"short", t:"곧고 짧음", s:"가로로 짧게", sc:{health:3,money:4,love:3,career:4},
+       r:"이성적이고 침착한 연애관을 가졌습니다. 천천히 신뢰를 쌓아가는 관계에서 행복을 느껴요."},
+      {k:"forked", t:"끝이 갈라짐", s:"끝에서 두세 갈래로", sc:{health:3,money:3,love:5,career:4},
+       r:"감정과 이성의 균형이 좋은 손금입니다. 대인관계가 원만하고 주변에 사람이 많이 모여요."}
+  ]},
+  { key:"fate", name:"운명선", color:"#b49cff",
+    where:"손목 쪽에서 중지 방향으로 손바닥 가운데를 세로로 올라가는 선 (없는 사람도 많음)",
+    opts:[
+      {k:"clear", t:"뚜렷하고 길게", s:"손목부터 중지 아래까지", sc:{health:3,money:4,love:3,career:5},
+       r:"인생의 방향이 분명하고 일찍부터 자기 길을 찾는 타입입니다. 한 분야에서 꾸준히 성과를 쌓아요."},
+      {k:"middle", t:"중간부터 시작", s:"손바닥 중간에서 위로", sc:{health:3,money:5,love:3,career:4},
+       r:"대기만성형 손금입니다. 30대 이후 본격적으로 운이 트이며, 자수성가로 재물을 모으는 힘이 있어요."},
+      {k:"faint", t:"희미하거나 없음", s:"잘 보이지 않음", sc:{health:4,money:3,love:4,career:3},
+       r:"정해진 틀에 얽매이지 않는 자유로운 운명입니다. 스스로 길을 만들어 가며 다양한 경험을 하게 돼요."},
+      {k:"broken", t:"여러 번 끊김", s:"짧은 선이 이어짐", sc:{health:3,money:3,love:3,career:4},
+       r:"변화와 도전이 많은 인생입니다. 여러 분야를 경험한 것이 결국 남다른 경쟁력이 돼요."}
+  ]}
+];
+const CATS = {health:"건강운", money:"재물운", love:"애정운", career:"직업운"};
+const TYPES = {
+  health:{n:"생명력의 손", m:"건강과 활력이 가장 큰 무기예요. 몸이 받쳐 주니 무엇이든 끝까지 해냅니다."},
+  money:{n:"재물의 손", m:"돈의 흐름을 읽는 감각이 있어요. 꾸준히 모으고 불리는 힘이 돋보입니다."},
+  love:{n:"인연의 손", m:"사람을 끌어당기는 따뜻함이 있어요. 좋은 인연이 곧 행운이 됩니다."},
+  career:{n:"성취의 손", m:"목표를 향해 나아가는 추진력이 강해요. 일에서 인정받는 운입니다."}
+};
+const COLORS = [["금빛 노랑","#e3b866"],["진달래 분홍","#d77a9a"],["깊은 남색","#3a4f8f"],["숲의 초록","#4f8f62"],["노을 주황","#e08a4f"],["라벤더","#a58bd6"],["순백","#f2f0ea"]];
+
+/* ---------- 상태 ---------- */
+const $ = id => document.getElementById(id);
+const cv = $("cv"), ctx = cv.getContext("2d");
+let img = null, imgBlob = null, hand = null;
+let lines = {};      // key -> {points:[[x,y]...] (0~1), type, comment}
+let hidden = {};     // 범례에서 숨긴 선
+let mode = "view";   // view | manual
+let mStep = 0, drawingNow = false;
+let summary = "";
+
+/* ---------- 사진 불러오기 ---------- */
+["in-camera","in-gallery"].forEach(id => $(id).addEventListener("change", e => {
+  const f = e.target.files[0]; if(!f) return; e.target.value = "";
+  loadImage(f);
+}));
+
+function loadImage(file){
+  const url = URL.createObjectURL(file);
+  const im = new Image();
+  im.onload = async () => {
+    // 분석·표시용으로 최대 1280px로 줄이기 (회전 정보는 브라우저가 반영)
+    const max = 1280, s = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight));
+    const c = document.createElement("canvas");
+    c.width = Math.round(im.naturalWidth * s); c.height = Math.round(im.naturalHeight * s);
+    c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(url);
+    imgBlob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.88));
+    img = new Image();
+    img.onload = () => { resetAll(); show("s-photo"); fitCanvas(); redraw(); };
+    img.src = c.toDataURL("image/jpeg", 0.88);
+  };
+  im.onerror = () => alertMsg("사진을 열 수 없어요. 다른 사진을 골라 주세요.");
+  im.src = url;
+}
+
+function resetAll(){
+  lines = {}; hidden = {}; summary = ""; mode = "view"; mStep = 0;
+  $("msg").innerHTML = ""; $("legend").classList.add("hidden");
+  $("pre").classList.remove("hidden"); $("manual").classList.add("hidden");
+  $("stepbar").classList.add("hidden"); $("s-result").classList.add("hidden");
+  $("photo-title").textContent = "어느 손인가요?";
+  $("photo-sub").textContent = "왼손은 타고난 운, 오른손은 노력으로 만들어 가는 운을 봅니다.";
+  cv.classList.remove("drawing");
+  document.querySelectorAll("[data-h]").forEach(b => b.classList.toggle("sel", b.dataset.h === hand));
+  $("btn-analyze").disabled = !hand;
+}
+
+function show(id){
+  if(id === "s-capture"){ $("s-capture").classList.remove("hidden"); $("s-photo").classList.add("hidden"); $("s-result").classList.add("hidden"); }
+  if(id === "s-photo"){ $("s-capture").classList.add("hidden"); $("s-photo").classList.remove("hidden"); }
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+document.querySelectorAll("[data-h]").forEach(b => b.onclick = () => {
+  hand = b.dataset.h;
+  document.querySelectorAll("[data-h]").forEach(x => x.classList.toggle("sel", x === b));
+  $("btn-analyze").disabled = false;
+});
+$("btn-retake").onclick = () => show("s-capture");
+
+/* ---------- 캔버스 그리기 ---------- */
+function fitCanvas(){
+  if(!img) return;
+  const w = cv.parentElement.clientWidth, dpr = window.devicePixelRatio || 1;
+  const h = w * img.height / img.width;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  cv.style.height = h + "px";
+}
+window.addEventListener("resize", () => { fitCanvas(); redraw(); });
+
+function strokeLine(pts, color, progress = 1, width = 1){
+  if(!pts || pts.length < 2) return;
+  const W = cv.width, H = cv.height;
+  const P = pts.map(([x,y]) => [x*W, y*H]);
+  // 진행률만큼 자르기
+  let total = 0; const seg = [];
+  for(let i=1;i<P.length;i++){ const d = Math.hypot(P[i][0]-P[i-1][0], P[i][1]-P[i-1][1]); seg.push(d); total += d; }
+  let remain = total * progress; const Q = [P[0]];
+  for(let i=1;i<P.length && remain>0;i++){
+    if(seg[i-1] <= remain){ Q.push(P[i]); remain -= seg[i-1]; }
+    else { const t = remain/seg[i-1]; Q.push([P[i-1][0]+(P[i][0]-P[i-1][0])*t, P[i-1][1]+(P[i][1]-P[i-1][1])*t]); remain = 0; }
+  }
+  if(Q.length < 2) return;
+  const base = Math.max(3, W/170) * width;
+  ctx.save();
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  const path = () => {
+    ctx.beginPath(); ctx.moveTo(Q[0][0], Q[0][1]);
+    for(let i=1;i<Q.length-1;i++){ const mx=(Q[i][0]+Q[i+1][0])/2, my=(Q[i][1]+Q[i+1][1])/2; ctx.quadraticCurveTo(Q[i][0],Q[i][1],mx,my); }
+    ctx.lineTo(Q[Q.length-1][0], Q[Q.length-1][1]);
+  };
+  ctx.shadowColor = color; ctx.shadowBlur = base*3;
+  ctx.strokeStyle = color; ctx.globalAlpha = .9; ctx.lineWidth = base; path(); ctx.stroke();
+  ctx.shadowBlur = 0; ctx.globalAlpha = 1; ctx.strokeStyle = "rgba(255,255,255,.75)"; ctx.lineWidth = base*.35; path(); ctx.stroke();
+  ctx.restore();
+}
+
+function labelAt(pts, text, color, atEnd){
+  if(!pts || pts.length < 2) return;
+  const W = cv.width, H = cv.height, dpr = window.devicePixelRatio || 1;
+  const [x,y] = atEnd ? pts[pts.length-1] : pts[0];
+  ctx.save();
+  ctx.font = `700 ${12*dpr}px "Noto Sans KR", sans-serif`;
+  const tw = ctx.measureText(text).width, pad = 6*dpr, bh = 20*dpr;
+  let lx = Math.min(Math.max(x*W - tw/2 - pad, 4), W - tw - pad*2 - 4);
+  let ly = Math.min(Math.max(y*H - bh - 8*dpr, 4), H - bh - 4);
+  ctx.fillStyle = "rgba(20,15,30,.82)"; ctx.strokeStyle = color; ctx.lineWidth = 1.5*dpr;
+  ctx.beginPath(); ctx.roundRect(lx, ly, tw + pad*2, bh, 10*dpr); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = color; ctx.textBaseline = "middle"; ctx.fillText(text, lx + pad, ly + bh/2);
+  ctx.restore();
+}
+
+function redraw(progress = 1){
+  if(!img) return;
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.drawImage(img, 0, 0, cv.width, cv.height);
+  if(Object.keys(lines).length){ ctx.fillStyle = "rgba(10,6,18,.22)"; ctx.fillRect(0,0,cv.width,cv.height); }
+  LINES.forEach((L, i) => {
+    const d = lines[L.key]; if(!d || hidden[L.key]) return;
+    const active = mode === "manual" && i === mStep;
+    const p = Math.max(0, Math.min(1, progress*LINES.length - i));
+    strokeLine(d.points, L.color, mode === "manual" ? 1 : p, active ? 1.3 : 1);
+  });
+  if(progress >= 1 && mode === "view") LINES.forEach(L => { const d = lines[L.key]; if(d && !hidden[L.key]) labelAt(d.points, L.name, L.color, L.key === "life" || L.key === "head"); });
+}
+
+function animate(){
+  const t0 = performance.now(), dur = 2400;
+  const tick = now => { const p = Math.min(1, (now - t0)/dur); redraw(p); if(p < 1) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+}
+
+function renderLegend(){
+  const el = $("legend"); el.classList.remove("hidden");
+  el.innerHTML = LINES.filter(L => lines[L.key]).map(L =>
+    `<button class="chip ${hidden[L.key]?'dim':''}" data-k="${L.key}"><i style="background:${L.color}"></i>${L.name}</button>`).join("");
+  el.querySelectorAll(".chip").forEach(c => c.onclick = () => { hidden[c.dataset.k] = !hidden[c.dataset.k]; renderLegend(); redraw(); });
+}
+
+/* ---------- AI 분석 ---------- */
+$("btn-analyze").onclick = analyze;
+
+async function analyze(){
+  $("msg").innerHTML = "";
+  $("btn-analyze").disabled = true; $("scan").classList.add("on");
+  try{
+    const image = await blobToBase64(imgBlob);
+    const resp = await fetch("/api/analyze", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ image, hand })
+    });
+    const res = await resp.json().catch(() => ({}));
+    if(!resp.ok) throw { status: resp.status, message: res.error };
+    $("scan").classList.remove("on");
+    if(!res || res.is_palm === false){
+      alertMsg((res && res.reason ? res.reason + " " : "") + "손바닥이 잘 보이도록 다시 찍어 주세요.");
+      $("btn-analyze").disabled = false; return;
+    }
+    lines = {};
+    LINES.forEach(L => {
+      const d = res.lines && res.lines[L.key]; if(!d) return;
+      const pts = (d.points||[]).filter(p => Array.isArray(p) && p.length===2 && isFinite(p[0]) && isFinite(p[1]))
+        .map(([x,y]) => [Math.min(1,Math.max(0,+x)), Math.min(1,Math.max(0,+y))]);
+      const type = L.opts.some(o => o.k === d.type) ? d.type : L.opts[0].k;
+      lines[L.key] = {points: pts, type, comment: d.comment || "", present: d.present !== false};
+    });
+    summary = res.summary || "";
+    $("pre").classList.add("hidden");
+    $("photo-title").textContent = "찾아낸 손금";
+    $("photo-sub").textContent = "선 이름을 누르면 하나씩 켜고 끌 수 있어요.";
+    renderLegend(); animate();
+    setTimeout(showResult, 2600);
+  }catch(err){
+    $("scan").classList.remove("on"); $("btn-analyze").disabled = false;
+    if(err && err.status === 429){ alertMsg("지금 사용하는 사람이 많아요. 잠시 후 다시 눌러 주세요."); return; }
+    alertMsg((err && err.message) ? err.message : "분석 중 문제가 생겼어요. 인터넷 연결을 확인하고 다시 시도하거나, 아래에서 직접 그려 보세요.");
+    addManualLink();
+  }
+}
+
+function blobToBase64(blob){
+  return new Promise((ok, fail) => {
+    const r = new FileReader();
+    r.onload = () => ok(String(r.result).split(",")[1]);
+    r.onerror = fail; r.readAsDataURL(blob);
+  });
+}
+
+function alertMsg(t){ $("msg").innerHTML = `<div class="msg">${t}</div>`; }
+function addManualLink(){
+  const b = document.createElement("button"); b.className = "btn ghost"; b.textContent = "직접 그려서 보기";
+  b.onclick = () => startManual(""); $("msg").appendChild(b);
+}
+
+/* ---------- 직접 그리기 모드 ---------- */
+function startManual(note, keep = false){
+  mode = "manual"; mStep = 0;
+  if(!keep) lines = {};
+  $("msg").innerHTML = note ? `<div class="msg">${note}</div>` : "";
+  $("pre").classList.add("hidden"); $("manual").classList.remove("hidden");
+  $("legend").classList.add("hidden"); $("s-result").classList.add("hidden");
+  $("stepbar").classList.remove("hidden");
+  cv.classList.add("drawing");
+  renderManual();
+  show("s-photo");
+}
+
+function renderManual(){
+  const L = LINES[mStep], d = lines[L.key];
+  $("stepbar").innerHTML = LINES.map((x,i) => `<span style="background:${i<=mStep?x.color:'var(--line)'}"></span>`).join("");
+  $("photo-title").innerHTML = `<span style="color:${L.color}">${mStep+1}. ${L.name}</span>`;
+  $("photo-sub").textContent = `${L.where}을 사진 위에서 손가락으로 따라 그리고, 모양을 골라 주세요.`;
+  $("opts").innerHTML = L.opts.map(o => `<button class="opt ${d&&d.type===o.k?'sel':''}" data-k="${o.k}"><b>${o.t}</b><small>${o.s}</small></button>`).join("");
+  $("opts").querySelectorAll(".opt").forEach(b => b.onclick = () => {
+    lines[L.key] = lines[L.key] || {points:[]}; lines[L.key].type = b.dataset.k; renderManual();
+  });
+  $("m-next").disabled = !(d && d.type);
+  $("m-next").textContent = mStep === LINES.length-1 ? "운세 보기 ✨" : "다음";
+  $("m-prev").classList.toggle("hidden", mStep === 0);
+  redraw();
+}
+
+$("m-clear").onclick = () => { const k = LINES[mStep].key; if(lines[k]) lines[k].points = []; redraw(); };
+$("m-prev").onclick = () => { if(mStep > 0){ mStep--; renderManual(); } };
+$("m-next").onclick = () => {
+  if(mStep < LINES.length-1){ mStep++; renderManual(); return; }
+  mode = "view"; cv.classList.remove("drawing");
+  $("manual").classList.add("hidden"); $("stepbar").classList.add("hidden"); $("msg").innerHTML = "";
+  $("photo-title").textContent = "내 손금";
+  $("photo-sub").textContent = "선 이름을 누르면 하나씩 켜고 끌 수 있어요.";
+  renderLegend(); animate(); setTimeout(showResult, 2600);
+};
+
+function pos(e){ const r = cv.getBoundingClientRect(); return [(e.clientX-r.left)/r.width, (e.clientY-r.top)/r.height]; }
+cv.addEventListener("pointerdown", e => {
+  if(mode !== "manual") return; e.preventDefault();
+  cv.setPointerCapture(e.pointerId); drawingNow = true;
+  const k = LINES[mStep].key; lines[k] = lines[k] || {}; lines[k].points = [pos(e)]; redraw();
+});
+cv.addEventListener("pointermove", e => {
+  if(!drawingNow) return; const k = LINES[mStep].key, p = pos(e), pts = lines[k].points, last = pts[pts.length-1];
+  if(Math.hypot(p[0]-last[0], p[1]-last[1]) > 0.008){ pts.push(p); redraw(); }
+});
+["pointerup","pointercancel"].forEach(t => cv.addEventListener(t, () => drawingNow = false));
+
+/* ---------- 결과 ---------- */
+function hash(str){let h=2166136261;for(const c of str){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return Math.abs(h);}
+
+function showResult(){
+  const chosen = LINES.filter(L => lines[L.key] && lines[L.key].type).map(L => ({L, o:L.opts.find(o => o.k === lines[L.key].type), d:lines[L.key]}));
+  if(!chosen.length) return;
+  const totals = {health:0,money:0,love:0,career:0};
+  chosen.forEach(({o}) => Object.keys(totals).forEach(k => totals[k] += o.sc[k]));
+  const scores = {}; Object.keys(totals).forEach(k => scores[k] = Math.round(totals[k]/chosen.length*20));
+  const top = Object.keys(scores).sort((a,b) => scores[b]-scores[a])[0], T = TYPES[top];
+  const today = new Date().toISOString().slice(0,10);
+  const seed = hash(today + hand + chosen.map(c=>c.o.k).join());
+  const color = COLORS[seed % COLORS.length], num = (seed % 9) + 1;
+  const dir = ["동쪽","서쪽","남쪽","북쪽","동남쪽","서북쪽"][(seed>>3) % 6];
+  const n = v => Math.max(1, Math.round(v/20));
+  const stars = v => "★".repeat(n(v)) + "☆".repeat(5-n(v));
+  const handNote = hand === "left" ? "왼손으로 본 타고난 기질" : "오른손으로 본 앞으로 만들어 갈 흐름";
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+  const text = [`[손금 운세] ${T.n}`, summary || T.m, ...Object.keys(CATS).map(k => `${CATS[k]} ${stars(scores[k])}`),
+    ...chosen.map(({L,o}) => `· ${L.name}(${o.t}): ${o.r}`), `행운의 색 ${color[0]} / 숫자 ${num} / 방향 ${dir}`].join("\n");
+
+  const r = $("s-result"); r.classList.remove("hidden");
+  r.innerHTML = `
+    <div class="result-head">
+      <p>${handNote}</p>
+      <div class="type">${T.n}</div>
+      <p>${esc(summary || T.m)}</p>
+    </div>
+    <div class="bars">${Object.keys(CATS).map(k => `
+      <div class="bar"><div class="top"><span>${CATS[k]}</span><span class="stars">${stars(scores[k])}</span></div>
+      <div class="track"><div class="fill" style="width:${scores[k]}%"></div></div></div>`).join("")}
+    </div>
+    <div class="reading">${chosen.map(({L,o,d}) => `
+      <h3><i style="background:${L.color}"></i>${L.name} · ${o.t}</h3>
+      <p>${o.r}</p>${d.comment ? `<p class="ai">🔍 ${esc(d.comment)}</p>` : ""}`).join("")}
+    </div>
+    <div class="lucky">
+      <div><span>행운의 색</span><i class="swatch" style="background:${color[1]}"></i>${color[0]}</div>
+      <div><span>행운의 숫자</span>${num}</div>
+      <div><span>좋은 방향</span>${dir}</div>
+    </div>
+    <button class="btn primary" id="copy">결과 복사</button>
+    <span id="copied"></span>
+    <div class="btns2">
+      <button class="btn ghost" id="fix">손금 직접 고치기</button>
+      <button class="btn ghost" id="again">새 사진으로</button>
+    </div>
+    <p class="note">손금 풀이는 전통 수상학을 바탕으로 한 재미용 콘텐츠예요.<br>사진은 손금 분석에만 쓰이고 서버에 저장되지 않아요.</p>`;
+  $("copy").onclick = async () => {
+    try{ await navigator.clipboard.writeText(text); $("copied").textContent = "복사됐어요!"; }
+    catch(e){ $("copied").textContent = "이 화면에서는 복사할 수 없어요"; }
+  };
+  $("fix").onclick = () => startManual("선이 실제와 다르면 해당 단계에서 다시 그리고, 모양도 고쳐 주세요.", true);
+  $("again").onclick = () => show("s-capture");
+  setTimeout(() => r.scrollIntoView({behavior:"smooth", block:"start"}), 200);
+}
+</script>
+</body>
+</html>
